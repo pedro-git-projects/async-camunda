@@ -1,0 +1,17 @@
+camunda:
+  client:
+    mode: simple
+    auth:
+      username: ${username} 
+      password: ${password} 
+    zeebe:
+      enabled: true
+      gateway-url: ${ZEEBE_GATEWAY_URL}
+      base-url: ${ZEEBE_BASE_URL}
+      prefer-rest-over-grpc: false
+    operate:
+      enabled: true
+      base-url: ${ZEEBE_BASE_URL/operate}
+    tasklist:
+      enabled: true
+      base-url: ${ZEEBE_BASE_URL/tasklist}

@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_0ex1rzn" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.26.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.5.0">
+  <bpmn:process id="travel_plans_pedro_martins" name="travel_plans_pedro_martins" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1" name="Plan vaction">
+      <bpmn:outgoing>Flow_0bl3wdn</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_0bl3wdn" sourceRef="StartEvent_1" targetRef="find_time_slot" />
+    <bpmn:serviceTask id="find_time_slot" name="Finda a timeslot">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="findTimeSlot" />
+        <zeebe:ioMapping>
+          <zeebe:output source="=timeSlot" target="timeSlot" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0bl3wdn</bpmn:incoming>
+      <bpmn:outgoing>Flow_0z2k071</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_0z2k071" sourceRef="find_time_slot" targetRef="book_flight" />
+    <bpmn:boundaryEvent id="Event_1earxeh" attachedToRef="book_flight">
+      <bpmn:compensateEventDefinition id="CompensateEventDefinition_1jxun92" />
+    </bpmn:boundaryEvent>
+    <bpmn:task id="Activity_097i423" name="Cancel flight reservation" isForCompensation="true" />
+    <bpmn:sequenceFlow id="Flow_01bydes" sourceRef="book_flight" targetRef="book_hotel" />
+    <bpmn:serviceTask id="book_hotel" name="Book hotel">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="bookHotel" />
+        <zeebe:ioMapping>
+          <zeebe:output source="=hotelName" target="hotelName" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_01bydes</bpmn:incoming>
+      <bpmn:outgoing>Flow_0hq8aws</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:boundaryEvent id="Event_1b5mpdg" attachedToRef="book_hotel">
+      <bpmn:compensateEventDefinition id="CompensateEventDefinition_09nouuw" />
+    </bpmn:boundaryEvent>
+    <bpmn:task id="Activity_0u3a50n" name="Cancel hotel reservation" isForCompensation="true" />
+    <bpmn:sequenceFlow id="Flow_0hq8aws" sourceRef="book_hotel" targetRef="confirm" />
+    <bpmn:serviceTask id="confirm" name="Confirm">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="confirm" />
+        <zeebe:ioMapping>
+          <zeebe:input source="=flightNumber" target="flightNumber" />
+          <zeebe:input source="=hotelName" target="hotelName" />
+          <zeebe:output source="=confirmed" target="confirmed" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0hq8aws</bpmn:incoming>
+      <bpmn:outgoing>Flow_1xj5wkx</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_17ftnif" name="Confirmed?">
+      <bpmn:incoming>Flow_1xj5wkx</bpmn:incoming>
+      <bpmn:outgoing>confirmed</bpmn:outgoing>
+      <bpmn:outgoing>not_confirmed</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_1xj5wkx" sourceRef="confirm" targetRef="Gateway_17ftnif" />
+    <bpmn:endEvent id="Event_1qiq30l" name="Vacation planning complete">
+      <bpmn:incoming>confirmed</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="confirmed" name="Confirmed" sourceRef="Gateway_17ftnif" targetRef="Event_1qiq30l">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=confirmed</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:endEvent id="Event_1n8f8dq" name="Cancel vacation plans">
+      <bpmn:incoming>not_confirmed</bpmn:incoming>
+      <bpmn:compensateEventDefinition id="CompensateEventDefinition_0p39xci" />
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="not_confirmed" name="Rejcted" sourceRef="Gateway_17ftnif" targetRef="Event_1n8f8dq">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=confirmed</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:serviceTask id="book_flight" name="Book  flight">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="bookFlight" />
+        <zeebe:ioMapping>
+          <zeebe:input source="=timeslot" target="timeslot" />
+          <zeebe:output source="=flightNumber" target="flightNumber" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0z2k071</bpmn:incoming>
+      <bpmn:outgoing>Flow_01bydes</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:association id="Association_18gq09o" associationDirection="One" sourceRef="Event_1earxeh" targetRef="Activity_097i423" />
+    <bpmn:association id="Association_0u2am6u" associationDirection="One" sourceRef="Event_1b5mpdg" targetRef="Activity_0u3a50n" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="travel_plans_pedro_martins">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="179" y="99" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="167" y="142" width="60" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0x1wydw_di" bpmnElement="find_time_slot">
+        <dc:Bounds x="270" y="77" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_097i423_di" bpmnElement="Activity_097i423">
+        <dc:Bounds x="550" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_18p9n2f_di" bpmnElement="book_hotel">
+        <dc:Bounds x="680" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0u3a50n_di" bpmnElement="Activity_0u3a50n">
+        <dc:Bounds x="800" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0fq7ak3_di" bpmnElement="confirm">
+        <dc:Bounds x="870" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_17ftnif_di" bpmnElement="Gateway_17ftnif" isMarkerVisible="true">
+        <dc:Bounds x="1065" y="92" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1062" y="62" width="57" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1qiq30l_di" bpmnElement="Event_1qiq30l">
+        <dc:Bounds x="1212" y="99" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1187" y="142" width="86" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1n8f8dq_di" bpmnElement="Event_1n8f8dq">
+        <dc:Bounds x="1212" y="212" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1191" y="255" width="79" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1gj6uog_di" bpmnElement="book_flight">
+        <dc:Bounds x="430" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_0u2am6u_di" bpmnElement="Association_0u2am6u">
+        <di:waypoint x="730" y="175" />
+        <di:waypoint x="730" y="240" />
+        <di:waypoint x="800" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_18gq09o_di" bpmnElement="Association_18gq09o">
+        <di:waypoint x="480" y="175" />
+        <di:waypoint x="480" y="240" />
+        <di:waypoint x="550" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Event_1b5mpdg_di" bpmnElement="Event_1b5mpdg">
+        <dc:Bounds x="712" y="139" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1earxeh_di" bpmnElement="Event_1earxeh">
+        <dc:Bounds x="462" y="139" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0bl3wdn_di" bpmnElement="Flow_0bl3wdn">
+        <di:waypoint x="215" y="117" />
+        <di:waypoint x="270" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0z2k071_di" bpmnElement="Flow_0z2k071">
+        <di:waypoint x="370" y="117" />
+        <di:waypoint x="430" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_01bydes_di" bpmnElement="Flow_01bydes">
+        <di:waypoint x="530" y="117" />
+        <di:waypoint x="680" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0hq8aws_di" bpmnElement="Flow_0hq8aws">
+        <di:waypoint x="780" y="117" />
+        <di:waypoint x="870" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1xj5wkx_di" bpmnElement="Flow_1xj5wkx">
+        <di:waypoint x="970" y="117" />
+        <di:waypoint x="1065" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0dtfbml_di" bpmnElement="confirmed">
+        <di:waypoint x="1115" y="117" />
+        <di:waypoint x="1212" y="117" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1138" y="99" width="51" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_14aknie_di" bpmnElement="not_confirmed">
+        <di:waypoint x="1090" y="142" />
+        <di:waypoint x="1090" y="230" />
+        <di:waypoint x="1212" y="230" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1145" y="213" width="38" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
