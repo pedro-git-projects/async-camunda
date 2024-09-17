@@ -1,6 +1,7 @@
 package dev.nilptr.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -8,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class TravelService {
@@ -20,9 +22,11 @@ public class TravelService {
     }
 
     private CompletableFuture<String> bookFlight() {
+        log.info("bookFlight called");
         byte[] arr = new byte[10];
         new Random().nextBytes(arr);
         String flightNumber = new String(arr, StandardCharsets.UTF_8);
+        log.info("Flight number: " + flightNumber);
         return CompletableFuture.supplyAsync(() -> flightNumber);
     }
 

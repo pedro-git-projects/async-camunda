@@ -16,11 +16,11 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 public class BookFlightWorker {
-    private TravelService travelService;
+    private final TravelService travelService;
 
-    @JobWorker(type = "timeslot", autoComplete = false)
+    @JobWorker(type = "bookFlight", autoComplete = false)
     public void handleBookFlight(JobClient client, ActivatedJob job, @Variable(name = "timeslot") String timeslot) {
-        log.info("Received variable " + timeslot);
+        log.info("Received timeslot: " + timeslot);
         travelService.findTimeSlotReactive().flatMap(flightNumber -> Mono.fromCompletionStage(client.newCompleteCommand(job.getKey()).variables(Map.of("flightNumber", flightNumber)).send())).doOnError(throwable -> {
             log.error("Failed to complete job: " + throwable.getMessage());
             client.newFailCommand(job.getKey()).retries(job.getRetries() - 1).errorMessage(throwable.getMessage()).send().exceptionally(failThrowable -> {
